@@ -9,6 +9,9 @@ var session = require('express-session');
 var multer  = require('multer');
 var upload = multer({ dest: 'uploads/' });
 
+/* DB Interface */
+var dao = require('./db');
+
 const port = 8080;
 
 /* Set up resources directory to server static files */
@@ -43,15 +46,29 @@ app.get('/', checkAuth, function (req, res) {
 
 app.post('/login', function(req, res) {
 
-    console.dir(req.body);
-    
-    req.session.currentUser = {
-        userName: 'cvaughan',
-        firstName: 'Chris',
-        lastName: 'Vaughan'
-    };
+    dao.authenticateUser(req.body.userName, req.body.password, function(err, user) {
 
-    res.redirect('/');
+        if (err)
+        {
+            console.error(err);
+            res.send(500);
+        }
+        else
+        {
+            console.dir(user);
+            if (user)
+            {
+                req.session.currentUser = user;
+            }
+            else
+            {
+                // TODO Send invalid credentials
+
+            }            
+            
+            res.redirect('/');
+        }
+    });
 });
 
 // TODO Make post?
