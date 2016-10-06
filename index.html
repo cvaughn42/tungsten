@@ -24,7 +24,7 @@
 </head>
 <!-- END HEAD -->
 <!-- BEGIN BODY -->
-<body class="fixed-top">
+<body class="fixed-top" ng-app="tungsten">
    <!-- BEGIN HEADER -->
    <div id="header" class="navbar navbar-inverse navbar-fixed-top">
        <!-- BEGIN TOP NAVIGATION BAR -->
@@ -265,7 +265,7 @@
                                <b class="caret"></b>
                            </a>
                            <ul class="dropdown-menu extended logout">
-                               <li><a href="#"><i class="icon-user"></i> My Profile</a></li>
+                               <li><a href="#/profile"><i class="icon-user"></i> My Profile</a></li>
                                <li><a href="#"><i class="icon-cog"></i> My Settings</a></li>
                                <li><a href="/logout"><i class="icon-key"></i> Log Out</a></li>
                            </ul>
@@ -488,18 +488,7 @@
              <div class="row-fluid">
                  <div class="span12">
                      <!-- BEGIN BLANK PAGE PORTLET-->
-                     <div class="widget red">
-                         <div class="widget-title">
-                             <h4><i class="icon-edit"></i> Blank Page </h4>
-                           <span class="tools">
-                               <a href="javascript:;" class="icon-chevron-down"></a>
-                               <a href="javascript:;" class="icon-remove"></a>
-                           </span>
-                         </div>
-                         <div class="widget-body">
-                             Blank page sample
-                         </div>
-                     </div>
+                     <ng-view></ng-view>
                      <!-- END BLANK PAGE PORTLET-->
                  </div>
              </div>
@@ -532,6 +521,24 @@
 
    <!--common script for all pages-->
    <script src="/metrolab/js/common-scripts.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular-route.js"></script>
+
+    <script>
+
+        var app = angular.module('tungsten', ['ngRoute']);
+
+        app.config(function($routeProvider) {
+
+            $routeProvider.when('/profile', {
+                templateUrl: '/templates/profile.html'
+            }).otherwise({
+                templateUrl: '/templates/blank.html'
+            });
+
+        });
+
+    </script>
 
    <!-- END JAVASCRIPTS -->   
 </body>
