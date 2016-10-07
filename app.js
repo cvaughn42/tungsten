@@ -31,7 +31,7 @@ app.use(session({
 var checkAuth = function(req, res, next) {
     if (!req.session.currentUser) 
     {
-        res.sendFile(path.join(__dirname + '/login.html'));
+        res.sendFile(path.join(__dirname, 'login.html'));
     }
     else 
     {
@@ -41,7 +41,12 @@ var checkAuth = function(req, res, next) {
 
 /* Application Home */
 app.get('/', checkAuth, function (req, res) {
-    res.sendFile(path.join(__dirname + '/index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/register', function(req, res) {
+
+    res.sendFile(path.join(__dirname, 'register.html'));
 });
 
 app.post('/login', function(req, res) {
@@ -51,7 +56,7 @@ app.post('/login', function(req, res) {
         if (err)
         {
             console.error(err);
-            res.send(500);
+            res.status(500).sendFile(path.join(__dirname, '500.html'));
         }
         else
         {

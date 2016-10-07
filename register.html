@@ -18,10 +18,12 @@
    <link href="/metrolab/css/style.css" rel="stylesheet" />
    <link href="/metrolab/css/style-responsive.css" rel="stylesheet" />
    <link href="/metrolab/css/style-default.css" rel="stylesheet" id="style_color" />
+   <link href="/css/tungsten.css" rel="stylesheet" />
 </head>
 <!-- END HEAD -->
 <!-- BEGIN BODY -->
 <body class="lock cover-page">
+    
     <div class="lock-header">
         <!-- BEGIN LOGO -->
         <a class="center" id="logo" href="/">
@@ -29,43 +31,37 @@
         </a>
         <!-- END LOGO -->
     </div>
-    <div class="login-wrap">
-        <form action="/login" method="post">
-            <div class="metro single-size red">
-                <div class="locked">
-                    <i class="icon-lock"></i>
-                    <span>Login</span>
+
+    <!-- BEGIN PAGE CONTAINER-->
+    <div class="container-fluid">
+
+        <!-- BEGIN PAGE CONTENT-->
+        <div class="row-fluid">
+
+            <div id="register-widget" class="widget blue span8 offset2">
+                
+                <div class="widget-title">
+                    <h4><i class="icon-user"></i> Register</h4>
+                    <span class="tools">
+                        <a href="javascript:;" class="icon-chevron-down"></a>
+                        <a href="javascript:;" class="icon-remove"></a>
+                    </span>
+                </div>
+                <div class="widget-body">
+                    <p>
+                        Tungsten is a moderated site.  Please register below, and a moderator 
+                        will review your registration and activate your account as soon as 
+                        possible.
+                    </p>
+
+ 
                 </div>
             </div>
-            <div class="metro double-size green">
-                <div class="input-append lock-input">
-                    <input type="text" class="" id="userName" name="userName" placeholder="Username">
-                </div>
-            </div>
-            <div class="metro double-size yellow">
-                <div class="input-append lock-input">
-                    <input type="password" id="password" name="password" class="" placeholder="Password">
-                </div>
-            </div>
-            <div class="metro single-size terques login">
-                <button type="submit" class="btn login-btn">
-                    Login
-                    <i class=" icon-long-arrow-right"></i>
-                </button>
-            </div>
-        </form>
-        <div class="login-footer">
-            <div class="remember-hint pull-left">
-                <input type="checkbox" id=""> Remember Me
-            </div>
-            <div class="register-new">
-                <a id="register" class="" href="/register">New User</a>
-            </div>
-            <div class="forgot-hint pull-right">
-                <a id="forget-password" class="" href="javascript:;">Forgot Password?</a>
-            </div>
+
         </div>
+
     </div>
+
 </body>
 <!-- END BODY -->
 </html>
