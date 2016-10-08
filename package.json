@@ -1,10 +1,11 @@
 {
   "name": "tungsten",
   "version": "1.0.0",
-  "description": "",
+  "description": "Private family picture and document sharing application",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js",
+    "test": "./node_modules/.bin/mocha --reporter spec"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,7 @@
     "express-session": "^1.14.1",
     "multer": "^1.2.0",
     "object-mapper": "^3.0.1",
-    "pg": "^6.1.0"
+    "pg": "^6.1.0",
+    "simple-encryptor": "^1.1.0"
   }
 }

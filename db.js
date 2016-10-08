@@ -1,3 +1,4 @@
+/* Import & configure Postgres */
 var pg = require('pg');
 
 var config = {
@@ -12,6 +13,7 @@ var config = {
 
 var pool = new pg.Pool(config);
 
+/* Import object mappings */
 var mappings = require('./db-mappings');
 
 var objectMapper = require('object-mapper');
@@ -23,6 +25,15 @@ function DAO()
 {
 
 }
+/* INSERT PERSON SQL */
+DAO.INSERT_PERSON_SQL = `INSERT INTO person 
+                         (first_name, middle_name, last_name, nick_name, sex, dob, dod) 
+                         VALUES ($1::varchar(20), $2::varchar(20), $3::varchar(20), $4::varchar(20),
+                                 $5::char(1), $6::date, $7::date)`;
+/* INSERT USER SQL */
+DAO.INSERT_USER_SQL = `INSERT INTO users 
+                       (user_name, password, email, person_id)
+                       VALUES ($1::varchar(20), $2::text, $3::varchar(256), $4::bigint)`;
 /* AUTHENTICATE USER SQL */
 DAO.AUTHENTICATE_USER_SQL = `SELECT u.user_name, p.first_name, p.middle_name, p.last_name
                              FROM public.user AS u 
@@ -31,6 +42,42 @@ DAO.AUTHENTICATE_USER_SQL = `SELECT u.user_name, p.first_name, p.middle_name, p.
                              WHERE u.user_name = $1::varchar(20) AND
                                    u.password = $2::varchar(20) AND
                                    u.active = true`;
+
+/**
+ * Insert the person object into the database
+ * @param person Person to Insert
+ * @param callback(err, personId)
+ */
+DAO.prototype.createPerson = function(person, callback) {
+
+    // TODO Validate person?
+    pool.connect(function(err, client, done) {
+        if (err)
+        {
+            callback("Unable to create person: Error fetching client from pool: " + err);
+        }
+        else
+        {
+            var params = objectMapper(person, mappings.personBusinessToDatabase).params;
+            console.dir(person);
+            console.dir(params);
+
+            client.query(DAO.INSERT_PERSON_SQL, params, function(err, result) {
+
+                if (err)
+                {
+                    callback("Unable to create person: Error inserting user: " + err);
+                }
+                else
+                {
+                    console.dir(result);
+                    callback(null, 1);
+                }
+            });
+        }
+    })
+};
+
 /**
  * Authenticate the user
  * @param userName
