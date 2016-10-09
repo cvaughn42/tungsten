@@ -18,7 +18,12 @@ describe('Testing DbInterface', function() {
             else
             {
                 if (!id) done(new Error("ID is not set"));
-                else done();
+                else 
+                {
+                    console.log('New ID = ' + id);
+                    done();
+                }
+
             }
         });
     });
@@ -33,7 +38,26 @@ describe('Testing DbInterface', function() {
             else
             {
                 if (!id) done(new Error("ID is not set"));
-                else done();
+                else 
+                {
+                    console.log('New ID = ' + id);
+                    done();
+                }
+            }
+        });
+    });
+
+    it('can find person by person ID', function(done) {
+
+        dao.findPerson(2, function(err, person) {
+            if (err)
+            {
+                done(err);
+            }
+            else
+            {
+                console.dir(person);
+                done();
             }
         });
     });

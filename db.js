@@ -25,16 +25,17 @@ function DAO()
 {
 
 }
-/* INSERT PERSON SQL */
+DAO.FIND_PERSON_BY_PERSON_ID_SQL = `SELECT first_name, middle_name, last_name, 
+                                           nick_name, sex, dob, dod, person_id
+                                    FROM person 
+                                    WHERE person_id = $1::bigint`;
 DAO.INSERT_PERSON_SQL = `INSERT INTO person 
                          (first_name, middle_name, last_name, nick_name, sex, dob, dod) 
                          VALUES ($1::varchar(20), $2::varchar(20), $3::varchar(20), $4::varchar(20),
                                  $5::char(1), $6::date, $7::date)`;
-/* INSERT USER SQL */
 DAO.INSERT_USER_SQL = `INSERT INTO users 
                        (user_name, password, email, person_id)
                        VALUES ($1::varchar(20), $2::text, $3::varchar(256), $4::bigint)`;
-/* AUTHENTICATE USER SQL */
 DAO.AUTHENTICATE_USER_SQL = `SELECT u.user_name, p.first_name, p.middle_name, p.last_name
                              FROM public.user AS u 
                              INNER JOIN person AS p
@@ -42,7 +43,9 @@ DAO.AUTHENTICATE_USER_SQL = `SELECT u.user_name, p.first_name, p.middle_name, p.
                              WHERE u.user_name = $1::varchar(20) AND
                                    u.password = $2::varchar(20) AND
                                    u.active = true`;
-
+DAO.CREATE_PERSON_ERR = "Error creating person: ";
+DAO.FIND_PERSON_ERR = "Error finding person: ";
+DAO.POOL_CONNECT_ERR = "Error fetching connection from pool: ";
 /**
  * Insert the person object into the database
  * @param person Person to Insert
@@ -50,32 +53,127 @@ DAO.AUTHENTICATE_USER_SQL = `SELECT u.user_name, p.first_name, p.middle_name, p.
  */
 DAO.prototype.createPerson = function(person, callback) {
 
-    // TODO Validate person?
-    pool.connect(function(err, client, done) {
-        if (err)
-        {
-            callback("Unable to create person: Error fetching client from pool: " + err);
-        }
-        else
-        {
-            var params = objectMapper(person, mappings.personBusinessToDatabase).params;
-            console.dir(person);
-            console.dir(params);
+    var validatePerson = function(person) {
+        return (person && person.firstName && person.lastName);
+    };
 
-            client.query(DAO.INSERT_PERSON_SQL, params, function(err, result) {
+    this.createEntity(person, validatePerson, DAO.INSERT_PERSON_SQL, mappings.personBusinessToDatabase, 
+        DAO.CREATE_PERSON_ERR, 'person', 'person_id', callback);
+};
 
-                if (err)
-                {
-                    callback("Unable to create person: Error inserting user: " + err);
-                }
-                else
-                {
-                    console.dir(result);
-                    callback(null, 1);
-                }
-            });
-        }
-    })
+/**
+ * Find the person with the specified id
+ * @param personId
+ * @param callback(err, person)
+ */
+DAO.prototype.findPerson = function(personId, callback) {
+    this.findDistinctEntity(personId, DAO.FIND_PERSON_BY_PERSON_ID_SQL, 
+        mappings.personDatabaseToBusiness, "personId", DAO.FIND_PERSON_ERR, callback);
+};
+/**
+ * Create an entity
+ * @param entity
+ * @param validate Validation function
+ * @param createEntitySql
+ * @param entityMapping
+ * @param errPrefix
+ * @param entityName
+ * @param entityIdName
+ * @param callback(err, entity)
+ */
+DAO.prototype.createEntity = function(entity, validate, createEntitySql, entityMapping, errPrefix, entityName, entityIdName, callback) {
+
+    if (validate(entity))
+    {
+        pool.connect(function(err, client, done) {
+            if (err)
+            {
+                callback(errPrefix + DAO.POOL_CONNECT_ERR + err);
+            }
+            else
+            {
+                var params = objectMapper(entity, entityMapping).params;
+            
+                client.query(createEntitySql + " RETURNING " + entityIdName, params, function(err, result) {
+
+                    if (err)
+                    {
+                        callback(errPrefix + "Error inserting " + entityName + ": " + err);
+                    }
+                    else
+                    {
+                        if (result.rowCount === 1)
+                        {
+                            callback(null, result.rows[0][entityIdName]);
+                        }
+                        else if (result.rowCount === 0)
+                        {
+                            callback(errPrefix + "No rows were created by the statement");
+                        }
+                        else
+                        {
+                            callback(errPrefix + "Multiple rows were created by the statement");
+                        }
+                    }
+                });
+            }
+        })
+    }
+    else
+    {
+        callback(errPrefix + entityName + " is not valid");
+    }
+};
+/**
+ * Find a distinct entity
+ * @param entityId
+ * @param findEntitySql
+ * @param entityMapping (database to business)
+ * @param entityIdName
+ * @param errPrefix
+ * @param callback(err, entity)
+ */
+DAO.prototype.findDistinctEntity = function(entityId, findEntitySql, entityMapping, entityIdName, errPrefix, callback) {
+
+    if (entityId)
+    {
+        pool.connect(function(err, client, done) {
+
+            if (err)
+            {
+                callback(errPrefix + DAO.POOL_CONNECT_ERR + err);
+            }
+            else
+            {
+                client.query(findEntitySql, [entityId], function(err, result) {
+
+                    if (err)
+                    {
+                        callback(errPrefix + "Error executing query: " + err);
+                    }
+                    else
+                    {
+                        if (result.rowCount === 1)
+                        {
+                            callback(null, objectMapper(result.rows[0], entityMapping));
+                        }
+                        else if (result.rowCount === 0)
+                        {
+                            callback(errPrefix + 'No entity found with ID ' + entityId);
+                        }
+                        else
+                        {
+                            callback(errPrefix + "Multiple entities found with ID " + entityId);
+                        }
+                    }
+                });
+            }
+        });
+    }
+    else
+    {
+        callback(errPrefix + entityIdName + " is required");
+    }    
 };
 
 /**
