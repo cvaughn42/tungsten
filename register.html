@@ -42,10 +42,6 @@
                 
                 <div class="widget-title">
                     <h4><i class="icon-user"></i> Register</h4>
-                    <span class="tools">
-                        <a href="javascript:;" class="icon-chevron-down"></a>
-                        <a href="javascript:;" class="icon-remove"></a>
-                    </span>
                 </div>
                 <div class="widget-body">
                     <p>
@@ -53,8 +49,53 @@
                         will review your registration and activate your account as soon as 
                         possible.
                     </p>
-
- 
+                    <form class="form-horizontal" action="/register" method="POST">
+                        <div class="control-group">
+                            <label class="control-label">User Name</label>
+                            <div class="controls">
+                                <input type="text" id="userName" name="userName" placeholder="User Name" class="input-medium" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Password</label>
+                            <div class="controls">
+                                <input type="password" id="password" name="password" placeholder="Password" class="input-medium" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">First Name</label>
+                            <div class="controls">
+                                <input type="text" id="firstName" name="firstName" placeholder="First Name" class="input-medium" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Middle Name</label>
+                            <div class="controls">
+                                <input type="text" id="middleName" name="middleName" placeholder="Middle Name" class="input-medium" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Last Name</label>
+                            <div class="controls">
+                                <input type="text" id="lastName" name="lastName" placeholder="Last Name" class="input-medium" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Nick Name</label>
+                            <div class="controls">
+                                <input type="text" id="nickName" name="nickName" placeholder="Nick Name" class="input-medium" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">E-mail</label>
+                            <div class="controls">
+                                <input type="text" id="email" name="email" placeholder="E-mail" class="input-xlarge" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <input type="submit" id="submitButton" class="btn btn-primary" value="Submit" />
+                        </div>
+                    </form>
                 </div>
             </div>
 

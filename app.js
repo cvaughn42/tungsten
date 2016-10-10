@@ -28,6 +28,20 @@ app.use(session({
     saveUninitialized: false
 }));
 
+var checkAuthAjax = function(req, res, next) {
+    if (!req.session.currentUser)
+    {
+        res.send({
+            status: 403,
+            text: 'User not authorized'
+        });
+    }
+    else
+    {
+        next();
+    }
+};
+
 var checkAuth = function(req, res, next) {
     if (!req.session.currentUser) 
     {
@@ -49,6 +63,38 @@ app.get('/register', function(req, res) {
     res.sendFile(path.join(__dirname, 'register.html'));
 });
 
+app.post('/register', function(req, res) {
+
+    var user = {
+        userName: req.body.userName,
+        email: req.body.email,
+        password: req.body.password,
+        person: {
+            firstName: req.body.firstName,
+            middleName: req.body.middleName,
+            lastName: req.body.lastName,
+            nickName: req.body.nickName
+        }
+    };
+
+    dao.createUser(user, function(err) {
+
+        if (err)
+        {
+            console.error(err);
+            res.status(500).sendFile(path.join(__dirname, '500.html'));
+        }
+        else
+        {
+            res.redirect('/');
+        }
+    });
+});
+
+app.post('/currentUser', checkAuthAjax, function(req, res) {
+    res.send(req.session.currentUser);
+});
+
 app.post('/login', function(req, res) {
 
     dao.authenticateUser(req.body.userName, req.body.password, function(err, user) {
@@ -60,7 +106,6 @@ app.post('/login', function(req, res) {
         }
         else
         {
-            console.dir(user);
             if (user)
             {
                 req.session.currentUser = user;

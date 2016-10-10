@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS relationship;
 DROP TABLE IF EXISTS family_person;
 DROP TABLE IF EXISTS person_alias;
+DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS person;
 DROP TABLE IF EXISTS family;
 
@@ -24,6 +25,17 @@ CREATE TABLE person
     sex char(1) check (sex IN ('M', 'F')),
     dob date,
     dod date
+);
+
+CREATE TABLE users
+(
+    user_name varchar(20) not null primary key,
+    password text not null,
+    email varchar(255) not null unique,
+    person_id bigint not null unique,
+    active boolean not null default false,
+    FOREIGN KEY (person_id)
+        REFERENCES person (person_id)
 );
 
 CREATE TABLE person_alias

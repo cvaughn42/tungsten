@@ -24,7 +24,7 @@
 </head>
 <!-- END HEAD -->
 <!-- BEGIN BODY -->
-<body class="fixed-top" ng-app="tungsten">
+<body class="fixed-top" ng-app="tungsten" ng-controller="tungsten-controller">
    <!-- BEGIN HEADER -->
    <div id="header" class="navbar navbar-inverse navbar-fixed-top">
        <!-- BEGIN TOP NAVIGATION BAR -->
@@ -261,7 +261,7 @@
                        <li class="dropdown">
                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                <img src="/metrolab/img/avatar1_small.jpg" alt="">
-                               <span class="username">Jhon Doe</span>
+                               <span class="username">{{ getPersonName(currentUser.person) }}</span>
                                <b class="caret"></b>
                            </a>
                            <ul class="dropdown-menu extended logout">
@@ -536,6 +536,53 @@
                 templateUrl: '/templates/blank.html'
             });
 
+        });
+        
+        app.controller('tungsten-controller', function ($scope, $http) {
+
+            $scope.getPersonName = function(person) {
+
+                if (person)
+                {
+                    var n = "";
+                    var sp = "";
+
+                    if (person.nickName)
+                    {
+                        n += sp + person.nickName;
+                        sp = " ";
+                    }
+                    else if (person.firstName)
+                    {
+                        n += sp + person.firstName;
+                        sp = " ";
+
+                        if (person.middleName)
+                        {
+                            n += sp + person.middleName;
+                            sp = " ";                            
+                        }
+                    }
+
+                    if (person.lastName)
+                    {
+                        n += sp + person.lastName;
+                    }
+
+                    return n;
+                }
+                else
+                {
+                    return "";
+                }
+            };
+
+            $http.post('/currentUser', {cache: false}).success(function (data) {
+
+                $scope.currentUser = data;
+            }).error(function () {
+                alert('Unable to load currentUser: ' + error);
+            });
         });
 
     </script>

@@ -6,7 +6,7 @@
 #register-widget
 {
     margin-top: 40px;
-    background: none;
+    opacity: .75;
 }
 
 #register-widget .widget-body

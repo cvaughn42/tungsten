@@ -13,10 +13,18 @@ var config = {
 
 var pool = new pg.Pool(config);
 
+/* Import file support */
+var fs = require('fs');
+
+var key = fs.readFileSync('.keyfile', 'utf8');
+
 /* Import object mappings */
 var mappings = require('./db-mappings');
 
 var objectMapper = require('object-mapper');
+
+/* Import encryption support */
+var crypto = require('crypto');
 
 /**
  * Data Access Object (DAO) object definition
@@ -36,16 +44,89 @@ DAO.INSERT_PERSON_SQL = `INSERT INTO person
 DAO.INSERT_USER_SQL = `INSERT INTO users 
                        (user_name, password, email, person_id)
                        VALUES ($1::varchar(20), $2::text, $3::varchar(256), $4::bigint)`;
-DAO.AUTHENTICATE_USER_SQL = `SELECT u.user_name, p.first_name, p.middle_name, p.last_name
-                             FROM public.user AS u 
+DAO.AUTHENTICATE_USER_SQL = `SELECT u.user_name, u.email, p.person_id, p.first_name, p.middle_name, 
+                                    p.last_name, p.nick_name, p.sex, p.dob, p.dod
+                             FROM users AS u 
                              INNER JOIN person AS p
                                 ON u.person_id = p.person_id
                              WHERE u.user_name = $1::varchar(20) AND
-                                   u.password = $2::varchar(20) AND
-                                   u.active = true`;
+                                   u.password = $2::text AND
+                                   u.active`;
+DAO.AUTHENTICATE_USER_ERR = "Error authenticating user: ";
 DAO.CREATE_PERSON_ERR = "Error creating person: ";
+DAO.CREATE_USER_ERR = "Error creating user: ";
 DAO.FIND_PERSON_ERR = "Error finding person: ";
 DAO.POOL_CONNECT_ERR = "Error fetching connection from pool: ";
+/**
+ * Insert the user into the database
+ * @param user
+ * @param callback(err)
+ */
+DAO.prototype.createUser = function(user, callback) {
+
+    if (user && user.userName && user.password && user.email && user.person)
+    {
+        user.password = crypto.createHash('md5').update(user.password).update(key).digest('hex');
+
+        var insertUser = function(user, callback) {
+
+            pool.connect(function(err, connect, done) {
+
+                if (err)
+                {
+                    callback(DAO.CREATE_USER_ERR + DAO.POOL_CONNECT_ERR + err);
+                }
+                else
+                {
+                    var params = objectMapper(user, mappings.userBusinessToDatabase).params;
+
+                    connect.query(DAO.INSERT_USER_SQL, params, function(err, result) {
+
+                        if (err)
+                        {
+                            callback(DAO.CREATE_USER_ERR + "Unable to save user: " + err);
+                        }
+                        else
+                        {
+                            if (result.rowCount === 1)
+                            {
+                                callback();
+                            }
+                            else
+                            {
+                                callback(DAO.CREATE_USER_ERR + "An unexpected number of rows was returned: " + result.rowCount);
+                            }
+                        }
+                    });
+                }
+            });
+        };
+
+        if (!user.person.id)
+        {
+            this.createPerson(user.person, function(err, personId) {
+
+                if (err)
+                {
+                    callback(DAO.CREATE_USER_ERR + err);
+                }
+                else
+                {
+                    user.person.id = personId;
+                    insertUser(user, callback);
+                }
+            });
+        }
+        else
+        {
+            insertUser(user, callback);
+        }
+    }
+    else
+    {
+        callback(DAO.CREATE_USER_ERR + "user is invalid");
+    }
+};
 /**
  * Insert the person object into the database
  * @param person Person to Insert
@@ -60,7 +141,6 @@ DAO.prototype.createPerson = function(person, callback) {
     this.createEntity(person, validatePerson, DAO.INSERT_PERSON_SQL, mappings.personBusinessToDatabase, 
         DAO.CREATE_PERSON_ERR, 'person', 'person_id', callback);
 };
-
 /**
  * Find the person with the specified id
  * @param personId
@@ -186,17 +266,20 @@ DAO.prototype.authenticateUser = function(userName, password, callback) {
 
     if (userName && password)
     {
+        password = crypto.createHash('md5').update(password).update(key).digest('hex');
+
         pool.connect(function(err, client, done) {
+            
             if (err)
             {
-                callback(new Error('Unable to authenticate user: Error fetching client from pool: ' + err));
+                callback(DAO.AUTHENTICATE_USER_ERR + DAO.POOL_CONNECT_ERR + err);
             }
             else
             {
                 client.query(DAO.AUTHENTICATE_USER_SQL, [userName, password], function(err, result) {
                     if (err)
                     {
-                        callback(new Error('Unable to authenticate user: Error querying user: ' + err));
+                        callback(DAO.AUTHENTICATE_USER_ERR + 'Error querying user: ' + err);
                     }
                     else
                     {
@@ -206,11 +289,11 @@ DAO.prototype.authenticateUser = function(userName, password, callback) {
                         }
                         else if (result.rowCount > 1)
                         {
-                            callback(new Error("Unable to authenticate user: Multiple users matched authentication criteria"));
+                            callback(DAO.AUTHENTICATE_USER_ERR + "Multiple users matched authentication criteria");
                         }
                         else
                         {
-                            callback(null, null);
+                            callback();
                         }
                     }
                 });

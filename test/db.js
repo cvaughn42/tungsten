@@ -61,4 +61,41 @@ describe('Testing DbInterface', function() {
             }
         });
     });
+
+    it('can create new user', function(done) {
+
+        var userName = 'test_' + Math.floor(Math.random() * 100000);
+
+        dao.createUser({
+            userName: userName,
+            password: 'tiger',
+            email: userName + "@aol.com",
+            person: {
+                firstName: 'Test',
+                lastName: 'User'
+            }
+        }, function(err) {
+            if (err) done(err);
+            else done();
+        })
+    });
+
+    it ('can authenticate user', function(done) {
+
+        dao.authenticateUser('test_872', 'tiger', function(err, user) {
+            if (err) done(err);
+            else 
+            {
+                if (user)
+                {
+                    console.dir(user);
+                    done();
+                }
+                else
+                {
+                    done("Invalid user name or password");
+                }
+            }
+        });
+    });
 });

@@ -26,7 +26,6 @@
     "express-session": "^1.14.1",
     "multer": "^1.2.0",
     "object-mapper": "^3.0.1",
-    "pg": "^6.1.0",
-    "simple-encryptor": "^1.1.0"
+    "pg": "^6.1.0"
   }
 }

@@ -20,10 +20,22 @@ module.exports = {
         dob: 'dob',
         dod: 'dod'
     },
+    userBusinessToDatabase: {
+        userName: 'params[]+',
+        password: 'params[]+',
+        email: 'params[]+',
+        'person.id': 'params[]+'
+    },
     userDatabaseToBusiness: {
         user_name: 'userName',
-        first_name: 'firstName',
-        middle_name: 'middleName',
-        last_name: 'lastName'
+        email: 'email',
+        person_id: 'person.id',
+        first_name: 'person.firstName',
+        middle_name: 'person.middleName',
+        last_name: 'person.lastName',
+        nick_name: 'person.nickName',
+        sex: 'person.sex',
+        dob: 'person.dob',
+        dod: 'person.dod'
     }
 };
