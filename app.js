@@ -95,6 +95,26 @@ app.post('/currentUser', checkAuthAjax, function(req, res) {
     res.send(req.session.currentUser);
 });
 
+app.post('/changePassword', checkAuthAjax, function(req, res) {
+
+    dao.updatePassword(req.body.userName, req.body.oldPassword, req.body.newPassword, function(err) {
+        
+        if (err)
+        {
+            res.status(500).send({
+                status: 500,
+                text: err
+            });
+        }
+        else
+        {
+            res.send({
+                status: 200
+            });
+        }
+    });
+});
+
 app.post('/login', function(req, res) {
 
     dao.authenticateUser(req.body.userName, req.body.password, function(err, user) {

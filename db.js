@@ -44,6 +44,10 @@ DAO.INSERT_PERSON_SQL = `INSERT INTO person
 DAO.INSERT_USER_SQL = `INSERT INTO users 
                        (user_name, password, email, person_id)
                        VALUES ($1::varchar(20), $2::text, $3::varchar(256), $4::bigint)`;
+DAO.UPDATE_USER_PASSWORD_SQL = `UPDATE users
+                                SET password = $3::text
+                                WHERE user_name = $1::varchar(20) AND
+                                      password = $2::text`;
 DAO.AUTHENTICATE_USER_SQL = `SELECT u.user_name, u.email, p.person_id, p.first_name, p.middle_name, 
                                     p.last_name, p.nick_name, p.sex, p.dob, p.dod
                              FROM users AS u 
@@ -57,6 +61,16 @@ DAO.CREATE_PERSON_ERR = "Error creating person: ";
 DAO.CREATE_USER_ERR = "Error creating user: ";
 DAO.FIND_PERSON_ERR = "Error finding person: ";
 DAO.POOL_CONNECT_ERR = "Error fetching connection from pool: ";
+DAO.UPDATE_PASSWORD_ERR = "Error changing user's password: ";
+
+/**
+ * Encrypt the specified password
+ * @param password
+ */
+DAO.prototype._encryptPassword = function(password) {
+    return crypto.createHash('md5').update(password).update(key).digest('hex');
+};
+
 /**
  * Insert the user into the database
  * @param user
@@ -66,7 +80,7 @@ DAO.prototype.createUser = function(user, callback) {
 
     if (user && user.userName && user.password && user.email && user.person)
     {
-        user.password = crypto.createHash('md5').update(user.password).update(key).digest('hex');
+        user.password = this._encryptPassword(user.password);
 
         var insertUser = function(user, callback) {
 
@@ -127,6 +141,57 @@ DAO.prototype.createUser = function(user, callback) {
         callback(DAO.CREATE_USER_ERR + "user is invalid");
     }
 };
+
+/**
+ * Change the user's password
+ * @param userName
+ * @param oldPassword
+ * @param newPassword
+ * @param callback(err)
+ */
+DAO.prototype.updatePassword = function(userName, oldPassword, newPassword, callback) {
+
+    if (userName && oldPassword && newPassword)
+    {
+        var encryptPassword = this._encryptPassword;
+
+        pool.connect(function(err, client, done) {
+
+            if (err)
+            {
+                callback(DAO.UPDATE_PASSWORD_ERR + DAO.POOL_CONNECT_ERR + err);
+            }
+            else
+            {
+                var params = [userName, encryptPassword(oldPassword), encryptPassword(newPassword)];
+
+                client.query(DAO.UPDATE_USER_PASSWORD_SQL, params, function(err, result) {
+
+                    if (err)
+                    {
+                        callback(DAO.UPDATE_PASSWORD_ERR + err);
+                    }
+                    else
+                    {
+                        if (result.rowCount === 1)
+                        {
+                            callback();
+                        }
+                        else
+                        {
+                            callback(DAO.UPDATE_PASSWORD_ERR + result.rowCount + " rows were affected by the update");
+                        }
+                    }
+                });
+            }
+        });
+    }
+    else
+    {
+        callback(DAO.UPDATE_PASSWORD_ERR + "userName, oldPassword and newPassword are required");
+    }
+};
+
 /**
  * Insert the person object into the database
  * @param person Person to Insert
@@ -266,7 +331,7 @@ DAO.prototype.authenticateUser = function(userName, password, callback) {
 
     if (userName && password)
     {
-        password = crypto.createHash('md5').update(password).update(key).digest('hex');
+        password = this._encryptPassword(password);
 
         pool.connect(function(err, client, done) {
             
