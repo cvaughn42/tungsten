@@ -68,7 +68,8 @@ DAO.UPDATE_PASSWORD_ERR = "Error changing user's password: ";
  * @param password
  */
 DAO.prototype._encryptPassword = function(password) {
-    return crypto.createHash('md5').update(password).update(key).digest('hex');
+    // return crypto.createHash('md5').update(password).update(key).digest('hex');
+    return password;
 };
 
 /**
